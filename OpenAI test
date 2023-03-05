@@ -1,0 +1,30 @@
+#OpenAI Test
+import openai
+import requests
+from io import BytesIO
+from PIL import Image
+
+import cv2
+
+openai.api_key = "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"
+
+# Generate an image of a cat
+response = openai.Image.create(
+    prompt="a close up, studio photographic portrait of a white siamese cat that looks curious, backlit ears",
+    n=1,
+    size="1024x1024",
+    response_format="url"
+)
+
+# Convert the image URL to an image object
+image_data = requests.get(response["data"][0]["url"]).content
+image = Image.open(BytesIO(image_data))
+image.save("generated_image.jpg")
+
+
+
+# Display the image
+#image.show()
+
+#image_url = response["data"][0]["url"]
+#print(image_url)
