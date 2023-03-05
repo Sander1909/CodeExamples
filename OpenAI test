@@ -6,7 +6,7 @@ from PIL import Image
 
 import cv2
 
-openai.api_key = "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"
+openai.api_key = "kan ikke lagres på Github"
 
 # Generate an image of a cat
 response = openai.Image.create(
