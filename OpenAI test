@@ -2,118 +2,125 @@ import openai
 import requests
 from io import BytesIO
 from PIL import Image
-
 import cv2
-
 import random
-
+#import keyboard
+import time
 import numpy as np
 
 openai.api_key = ""
 
+
+#quitButton = 'q'
+
+while True: #not keyboard.is_pressed(quitButton):
+    
 # Read word files
-with open("Media.txt", "r") as file:
-    words = file.readlines()
-mediaStr = random.choice(words).strip()
+    with open("Media.txt", "r") as file:
+        words = file.readlines()
+    mediaStr = random.choice(words).strip()
 
-with open("Adjective.txt", "r") as file:
-    words = file.readlines()
-adjectiveStr = random.choice(words).strip()
+    with open("Adjective.txt", "r") as file:
+        words = file.readlines()
+    adjectiveStr = random.choice(words).strip()
+ 
+    with open("Object.txt", "r") as file:
+        words = file.readlines()
+    objectStr = random.choice(words).strip()
     
-with open("Object.txt", "r") as file:
-    words = file.readlines()
-objectStr = random.choice(words).strip()
+    objectStr = objectStr[0].lower() + objectStr[1:]
     
-objectStr = objectStr[0].lower() + objectStr[1:]
+    with open("Art_styles.txt", "r") as file:
+        words = file.readlines()
+    artStyleStr = random.choice(words).strip()
     
-with open("Art_styles.txt", "r") as file:
-    words = file.readlines()
-artStyleStr = random.choice(words).strip()
-
-vocals ="AEIOUYaeiouy"
-if adjectiveStr[0] in vocals:
-    adjectiveStr = "an " + adjectiveStr
-else: adjectiveStr = "a " + adjectiveStr
-
+    vocals ="AEIOUYaeiouy"
+    if adjectiveStr[0] in vocals:
+        adjectiveStr = "an " + adjectiveStr
+    else: adjectiveStr = "a " + adjectiveStr
+    
 #Template
 #"A [media] of a/an [adjective] [object],  in [artstyle] style"
 
-toGenerate = "A " + mediaStr + " of " + adjectiveStr + " " + objectStr + ", in " + artStyleStr + " style"
-print(toGenerate)
+    toGenerate = "A " + mediaStr + " of " + adjectiveStr + " " + objectStr + ", in " + artStyleStr + " style"
+    print(toGenerate)
 
 #Generate image with constructed prompt
 
-response = openai.Image.create(
-    prompt=toGenerate,
-    n=1,
-    size="1024x1024",
-    response_format="url"
-)
+    response = openai.Image.create(
+        prompt=toGenerate,
+        n=1,
+        size="1024x1024",
+        response_format="url"
+    )
 
 # Convert the image URL to an image object
-image_data = requests.get(response["data"][0]["url"]).content
-image = Image.open(BytesIO(image_data))
-image.save("generated_image.jpg")
-
+    image_data = requests.get(response["data"][0]["url"]).content
+    image = Image.open(BytesIO(image_data))
+    image.save("generated_image.jpg")
+    
 #######################
 # Load the image
-image = cv2.imread("generated_image.jpg")
+    image = cv2.imread("generated_image.jpg")
 
-
+    
 #######################
 #Add black bar to top of image
-
+    
 # Get the dimensions of the image
-height, width = image.shape[:2]
-
+    height, width = image.shape[:2]
+    
 # Define the height and width of the black bar
-bar_height = 100
-bar_width = width
-
+    bar_height = 100
+    bar_width = width
+    
 # Create a black image with the same dimensions as the original image
-black_bar = np.zeros((bar_height, bar_width, 3), np.uint8)
+    black_bar = np.zeros((bar_height, bar_width, 3), np.uint8)
 
 # Draw a filled rectangle at the top of the black image
-cv2.rectangle(black_bar, (0, 0), (bar_width, bar_height), (0, 0, 0), -1)
-
+    cv2.rectangle(black_bar, (0, 0), (bar_width, bar_height), (0, 0, 0), -1)
+    
 # Concatenate the black bar and the original image vertically
-image = np.concatenate((black_bar, image), axis=0)
+    image = np.concatenate((black_bar, image), axis=0)
 #######################
-
+    
 #Add text to image
-text = toGenerate
-
-font = cv2.FONT_HERSHEY_SIMPLEX
-font_scale = 1
-
-color = (255, 255, 255)
-thickness = 2
-line_type = cv2.LINE_8
-
-text_size, _ = cv2.getTextSize(text, font, font_scale, thickness)
-
-x = int((image.shape[1] - text_size[0]) / 10)
-y = int((image.shape[0] + text_size[1]) / 15)
-
-cv2.putText(image, text, (x, y), font, font_scale, color, thickness, line_type)
-
-cv2.imwrite("generated_image_with_text.jpg", image)
-
+    text = toGenerate
+    
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    font_scale = 1
+    
+    color = (255, 255, 255)
+    thickness = 2
+    line_type = cv2.LINE_8
+    
+    text_size, _ = cv2.getTextSize(text, font, font_scale, thickness)
+    
+    x = int((image.shape[1] - text_size[0]) / 10)
+    y = int((image.shape[0] + text_size[1]) / 15)
+    
+    cv2.putText(image, text, (x, y), font, font_scale, color, thickness, line_type)
+    
+    cv2.imwrite("generated_image_with_text.jpg", image)
+    
 #######################
-
-
-cv2img = cv2.imread("generated_image_with_text.jpg")
-
-cv2.namedWindow("Image", cv2.WINDOW_NORMAL)
-cv2.setWindowProperty("Image", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
-
-
-
-cv2.imshow("Image", cv2img)
-
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-
+    
+    
+    cv2img = cv2.imread("generated_image_with_text.jpg")
+    
+    cv2.namedWindow("Image", cv2.WINDOW_NORMAL)
+    cv2.setWindowProperty("Image", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+    
+    
+    
+    cv2.imshow("Image", cv2img)
+    
+    #cv2.waitKey(0)
+    time.sleep(5)
+    cv2.destroyAllWindows()
+    
+    
+pass
 # Display the image
 #image.show()
 
